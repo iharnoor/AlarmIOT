@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">AlarmIOT</string>
+    <string name="label_accelerometer">Accelerometer Sensor: %s</string>
+    <string name="label_gyroscope">Gyroscope Sensor: %s</string>
+    <string name="error_no_sensor">No Sensor</string>
+</resources>
