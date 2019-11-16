@@ -1,14 +1,27 @@
 package com.pawer.sensorsurvey;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.widget.TextView;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     // System sensor manager instance.
@@ -23,13 +36,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView mTextSensorGravity;
     private TextView mTextSensorAccelerometer;
     private TextView mTextSensorGyroscope;
+    Handler handler;
+    Runnable runnable;
+
+    float[] accData;
+    float[] gyroData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize all view variables.
+        accData = new float[3];
+        gyroData = new float[3];
+
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) //this might be wrong needed context
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions((Activity) this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+
+            return;
+        }
+
         mTextSensorGravity = findViewById(R.id.label_gravity);
         mTextSensorAccelerometer = findViewById(R.id.label_accelerometer);
         mTextSensorGyroscope = findViewById(R.id.label_gyroscope);
@@ -58,11 +89,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (mSensorGyroscope == null) {
             mTextSensorGyroscope.setText(sensor_error);
         }
+
+        //Handler for graph plotting on background thread
+
+        //Runnable for background plotting
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                // specify time here
+                handler.postDelayed(this, 10);
+                writeToCSV();
+            }
+        };
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
+
+        handler = new Handler();
+
 
         // Listeners for the sensors are registered in this callback and
         // can be unregistered in onPause().
@@ -72,16 +118,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // (SENSOR_DELAY_NORMAL)
         if (mSensorGravity != null) {
             mSensorManager.registerListener(this, mSensorGravity,
-                    SensorManager.SENSOR_DELAY_NORMAL);
+                    SensorManager.SENSOR_DELAY_FASTEST);
         }
         if (mSensorAccelerometer != null) {
             mSensorManager.registerListener(this, mSensorAccelerometer,
-                    SensorManager.SENSOR_DELAY_NORMAL);
+                    SensorManager.SENSOR_DELAY_FASTEST);
         }
         if (mSensorGyroscope != null) {
             mSensorManager.registerListener(this, mSensorGyroscope,
-                    SensorManager.SENSOR_DELAY_NORMAL);
+                    SensorManager.SENSOR_DELAY_FASTEST);
         }
+        handler.post(runnable);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mSensorManager.unregisterListener(this);
+        handler.removeCallbacks(runnable);
     }
 
     @Override
@@ -105,30 +159,51 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // The new data value of the sensor.  Both the light and proximity
         // sensors report one value at a time, which is always the first
         // element in the values array.
-        float currentValue = sensorEvent.values[0];
+        float x_Value = sensorEvent.values[0];
 
         switch (sensorType) {
             // Event came from the light sensor.
-            case Sensor.TYPE_GRAVITY:
-                // Set the light sensor text view to the light sensor string
-                // from the resources, with the placeholder filled in.
-                mTextSensorGravity.setText(getResources().getString(
-                        R.string.label_gravity, currentValue));
-                break;
             case Sensor.TYPE_ACCELEROMETER:
                 // Set the proximity sensor text view to the light sensor
                 // string from the resources, with the placeholder filled in.
+                accData = sensorEvent.values;
                 mTextSensorAccelerometer.setText(getResources().getString(
-                        R.string.label_accelerometer, currentValue));
+                        R.string.label_accelerometer, Arrays.toString(accData)));
                 break;
             case Sensor.TYPE_GYROSCOPE:
                 // Set the proximity sensor text view to the light sensor
                 // string from the resources, with the placeholder filled in.
+                gyroData = sensorEvent.values;
                 mTextSensorGyroscope.setText(getResources().getString(
-                        R.string.label_gyroscope, currentValue));
+                        R.string.label_gyroscope, Arrays.toString(gyroData)));
                 break;
             default:
-                // do nothing
+        }
+    }
+
+    public void writeToCSV() {
+//        final String content = Arrays.toString(accData).substring(1, accData.length - 1) + "," + Arrays.toString(gyroData).substring(1, gyroData.length - 1);
+        final String content = accData[0] + "," + accData[1] + "," + accData[2] + "," + gyroData[0] + "," + gyroData[1] + "," + gyroData[2];
+
+        final String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_ALARMS) + "/csv/";
+        File newdir = new File(dir);
+        if (!newdir.exists()) {
+            newdir.mkdirs();
+        }
+        try {
+            File file = new File(dir + "a" + ".csv");
+            // if file doesnt exists, then create it
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            FileWriter fw = new FileWriter(file.getAbsoluteFile(), true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter printWriter = new PrintWriter(bw);
+            printWriter.println(content);
+//            bw.append(content);
+            printWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

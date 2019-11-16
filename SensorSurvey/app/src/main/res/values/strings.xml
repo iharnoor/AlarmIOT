@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">SensorSurvey</string>
     <string name="error_no_sensor">No sensor</string>
-    <string name="label_accelerometer">Accelerometer Sensor: %1$.2f</string>
+    <string name="label_accelerometer">Accelerometer Sensor: %s</string>
     <string name="label_gravity">Gravity Sensor: %1$.2f</string>
-    <string name="label_gyroscope">Gyroscope Sensor: %1$.2f</string>
+    <string name="label_gyroscope">Gyroscope Sensor: %s</string>
 </resources>
