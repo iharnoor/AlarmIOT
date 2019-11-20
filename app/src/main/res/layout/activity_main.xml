@@ -35,4 +35,24 @@
         android:layout_below="@+id/label_accelerometer"
         android:text="@string/label_gyroscope" />
 
+    <Button
+        android:id="@+id/classifyButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnCall"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:text="Initializing" />
+
+    <TextView
+        android:id="@+id/result_text_view"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:layout_below="@+id/classifyButton"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:text="result"
+        android:textSize="50dp" />
+
 </RelativeLayout>

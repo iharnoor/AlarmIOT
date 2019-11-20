@@ -14,9 +14,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -25,8 +27,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -41,11 +43,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView mTextSensorGravity;
     private TextView mTextSensorAccelerometer;
     private TextView mTextSensorGyroscope;
+    private TextView resultTextView;
+
     Handler handler;
     Runnable runnable;
 
     float[] accData;
     float[] gyroData;
+    private CircularFifoQueue<String> sensor_data = new CircularFifoQueue(500);
+    private DetectionClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +79,45 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     public void onClick(View v) {
                         final MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.xyz);
                         mediaPlayer.start();
+                    }
+                }
+        );
+
+
+        client = new DetectionClient(getApplicationContext());
+        handler = new Handler();
+        resultTextView = findViewById(R.id.result_text_view);
+
+        Button classifyButton = findViewById(R.id.classifyButton);
+        classifyButton.setEnabled(false);
+
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+                MainActivity.this.runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        classifyButton.setEnabled(true);
+                        classifyButton.setText("Start");
+                    }
+                });
+            }
+        }).start();
+
+        classifyButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        classify();
                     }
                 }
         );
@@ -176,6 +221,49 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager.unregisterListener(this);
     }
 
+    protected void onStart() {
+        super.onStart();
+        new Thread(new Runnable() {
+            @Override
+            public void run () {
+                // Perform long-running task here
+                // (like audio buffering).
+                // you may want to update some progress
+                // bar every second, so use handler:
+                handler.post(new Runnable() {
+                    @Override
+                    public void run () {
+                        // make operation on UI - on example
+                        // on progress bar.
+                        client.load();
+                    }
+                });
+            }
+        }).start();
+    }
+
+    private void classify() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run () {
+                try {
+                    while (true) {
+                        Thread.sleep(1000);
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                float[][] results = client.classify(sensor_data);
+                                resultTextView.setText(String.valueOf(results[0][0]));
+                            }
+                        });
+                    }} catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+    }
+
     /**
      * write code to save to csv here
      * find a way to push the old and new value of the sensors to the csv
@@ -211,9 +299,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     public void writeToCSV() {
-//        final String content = Arrays.toString(accData).substring(1, accData.length - 1) + "," + Arrays.toString(gyroData).substring(1, gyroData.length - 1);
+//      final String content = Arrays.toString(accData).substring(1, accData.length - 1) + "," + Arrays.toString(gyroData).substring(1, gyroData.length - 1);
         final String content = accData[0] + "," + accData[1] + "," + accData[2] + "," + gyroData[0] + "," + gyroData[1] + "," + gyroData[2];
-
+        sensor_data.offer(content);
         final String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_ALARMS) + "/csv/";
         File newdir = new File(dir);
         if (!newdir.exists()) {
