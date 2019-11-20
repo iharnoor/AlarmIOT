@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             public void run () {
                 try {
                     while (true) {
-                        Thread.sleep(1000);
+                        Thread.sleep(100);
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
