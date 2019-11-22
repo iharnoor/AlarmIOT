@@ -14,11 +14,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -26,9 +29,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-
-import androidx.core.app.ActivityCompat;
-import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -61,28 +61,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Button btnCall = findViewById(R.id.btnCall);
 
         btnCall.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent callIntent = new Intent(Intent.ACTION_CALL);
-                        callIntent.setData(Uri.parse("tel:1231231231"));
-                        startActivity(callIntent);
-                    }
+                v -> {
+                    Intent callIntent = new Intent(Intent.ACTION_CALL);
+                    callIntent.setData(Uri.parse("tel:1231231231"));
+                    startActivity(callIntent);
                 }
         );
 
         Button btnAlarm = findViewById(R.id.btnAlarm);
 
         btnAlarm.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        final MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.xyz);
-                        mediaPlayer.start();
-                    }
+                v -> {
+                    final MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.xyz);
+                    mediaPlayer.start();
                 }
         );
-
 
         client = new DetectionClient(getApplicationContext());
         handler = new Handler();
@@ -114,14 +107,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }).start();
 
         classifyButton.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        classify();
-                    }
-                }
+                v -> classify()
         );
-
 
         // sensor data
         accData = new float[3];
@@ -225,14 +212,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onStart();
         new Thread(new Runnable() {
             @Override
-            public void run () {
+            public void run() {
                 // Perform long-running task here
                 // (like audio buffering).
                 // you may want to update some progress
                 // bar every second, so use handler:
                 handler.post(new Runnable() {
                     @Override
-                    public void run () {
+                    public void run() {
                         // make operation on UI - on example
                         // on progress bar.
                         client.load();
@@ -243,22 +230,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     private void classify() {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run () {
-                try {
-                    while (true) {
-                        Thread.sleep(100);
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                float[][] results = client.classify(sensor_data);
-                                resultTextView.setText(String.valueOf(results[0][0]));
-                            }
-                        });
-                    }} catch (InterruptedException e) {
-                    e.printStackTrace();
+        Thread thread = new Thread(() -> {
+            try {
+                while (true) {
+                    Thread.sleep(100);
+                    handler.post(() -> {
+                        float[][] results = client.classify(sensor_data);
+                        resultTextView.setText(String.valueOf(results[0][0]));
+                    });
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         });
         thread.start();
@@ -299,7 +281,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     public void writeToCSV() {
-//      final String content = Arrays.toString(accData).substring(1, accData.length - 1) + "," + Arrays.toString(gyroData).substring(1, gyroData.length - 1);
         final String content = accData[0] + "," + accData[1] + "," + accData[2] + "," + gyroData[0] + "," + gyroData[1] + "," + gyroData[2];
         sensor_data.offer(content);
         final String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_ALARMS) + "/csv/";
@@ -317,7 +298,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter printWriter = new PrintWriter(bw);
             printWriter.println(content);
-//            bw.append(content);
             printWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
