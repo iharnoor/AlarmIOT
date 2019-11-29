@@ -55,4 +55,15 @@
         android:text="result"
         android:textSize="50dp" />
 
+    <com.pawer.alarmiot.IndicatorView
+        android:id="@+id/myIndicator"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignTop="@+id/btnAlarm"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="182dp"
+        android:layout_marginTop="287dp"
+        android:layout_marginEnd="178dp" />
+
 </RelativeLayout>

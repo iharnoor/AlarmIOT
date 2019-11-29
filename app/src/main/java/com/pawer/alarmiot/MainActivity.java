@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 
@@ -53,12 +54,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private CircularFifoQueue<String> sensor_data = new CircularFifoQueue(500);
     private DetectionClient client;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        IndicatorView indicatorView = findViewById(R.id.myIndicator);
+
+        // Change Color Here
+        indicatorView.setmColor(ContextCompat.getColor(this, R.color.colorPrimary));
+
+
         Button btnCall = findViewById(R.id.btnCall);
+        Button btnAlarm = findViewById(R.id.btnAlarm);
+
+        btnCall.setVisibility(View.GONE);
+        btnAlarm.setVisibility(View.GONE);
 
         btnCall.setOnClickListener(
                 v -> {
@@ -68,7 +81,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
         );
 
-        Button btnAlarm = findViewById(R.id.btnAlarm);
 
         btnAlarm.setOnClickListener(
                 v -> {
@@ -303,6 +315,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             e.printStackTrace();
         }
     }
+
 
     /**
      * Abstract method in SensorEventListener.  It must be implemented, but is
