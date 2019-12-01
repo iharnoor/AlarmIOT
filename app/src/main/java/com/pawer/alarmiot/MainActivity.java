@@ -71,8 +71,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Button btnCall = findViewById(R.id.btnCall);
         Button btnAlarm = findViewById(R.id.btnAlarm);
 
-        btnCall.setVisibility(View.GONE);
-        btnAlarm.setVisibility(View.GONE);
+        //btnCall.setVisibility(View.GONE);
+        //btnAlarm.setVisibility(View.GONE);
 
         btnCall.setOnClickListener(
                 v -> {
@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void run() {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(8000);
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -250,6 +250,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     handler.post(() -> {
                         float[][] results = client.classify(sensor_data);
                         resultTextView.setText(String.valueOf(results[0][0]));
+                        if(results[0][0]>=0.95){
+                            indicatorView.setmColor(ContextCompat.getColor(this,android.R.color.holo_red_light));
+                        }else {
+                            indicatorView.setmColor(ContextCompat.getColor(this, R.color.colorPrimary));
+                        }
+
                     });
                 }
             } catch (InterruptedException e) {

@@ -20,7 +20,7 @@ import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 public class DetectionClient {
     private static final String TAG = "ActionClassification";
-    private static final String MODEL_PATH = "hfr.tflite";
+    private static final String MODEL_PATH = "conv.tflite";
     private static final String TEST_PATH = "test.csv";
     private final Context context;
     private Interpreter tflite;
