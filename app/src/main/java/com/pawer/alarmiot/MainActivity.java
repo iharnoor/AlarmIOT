@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float[] gyroData;
     private CircularFifoQueue<String> sensor_data = new CircularFifoQueue(500);
     private DetectionClient client;
+    private IndicatorView indicatorView;
 
 
     @Override
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
 
 
-        IndicatorView indicatorView = findViewById(R.id.myIndicator);
+        indicatorView = findViewById(R.id.myIndicator);
 
         // Change Color Here
         indicatorView.setmColor(ContextCompat.getColor(this, R.color.colorPrimary));
