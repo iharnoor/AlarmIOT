@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         Button btnCall = findViewById(R.id.btnCall);
         Button btnAlarm = findViewById(R.id.btnAlarm);
+        final MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.xyz);
 
         //btnCall.setVisibility(View.GONE);
         //btnAlarm.setVisibility(View.GONE);
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         btnCall.setOnClickListener(
                 v -> {
                     Intent callIntent = new Intent(Intent.ACTION_CALL);
-                    callIntent.setData(Uri.parse("tel:1231231231"));
+                    callIntent.setData(Uri.parse("tel:3128131285"));
                     startActivity(callIntent);
                 }
         );
@@ -85,8 +86,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         btnAlarm.setOnClickListener(
                 v -> {
-                    final MediaPlayer mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.xyz);
-                    mediaPlayer.start();
+                    if(mediaPlayer.isPlaying()) {
+                        mediaPlayer.pause();
+                    }else {
+                        mediaPlayer.start();
+                    }
                 }
         );
 
@@ -250,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     handler.post(() -> {
                         float[][] results = client.classify(sensor_data);
                         resultTextView.setText(String.valueOf(results[0][0]));
-                        if(results[0][0]>=0.95){
+                        if(results[0][0]>=0.90){
                             indicatorView.setmColor(ContextCompat.getColor(this,android.R.color.holo_red_light));
                         }else {
                             indicatorView.setmColor(ContextCompat.getColor(this, R.color.colorPrimary));
